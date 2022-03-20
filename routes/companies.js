@@ -1,7 +1,7 @@
 "use strict";
 
 /** Routes for companies. */
-
+const filterValidate = require('../helpers/filterValidator') 
 const jsonschema = require("jsonschema");
 const express = require("express");
 
@@ -52,7 +52,9 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 
 router.get("/", async function (req, res, next) {
   try {
-    const companies = await Company.findAll();
+    const filters = req.query
+    filterValidate(filters)
+    const companies = await Company.filter(filters);
     return res.json({ companies });
   } catch (err) {
     return next(err);

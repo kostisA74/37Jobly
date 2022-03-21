@@ -53,7 +53,9 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 router.get("/", async function (req, res, next) {
   try {
     const filters = req.query
+    // validate filters if any
     filterValidate(filters)
+    // if there are no filters in the q-string, this behaves like get-all
     const companies = await Company.filter(filters);
     return res.json({ companies });
   } catch (err) {

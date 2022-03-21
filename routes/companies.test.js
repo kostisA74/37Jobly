@@ -12,6 +12,7 @@ const {
   commonAfterAll,
   u1Token,
 } = require("./_testCommon");
+const { ExpressError } = require("../expressError");
 
 beforeAll(commonBeforeAll);
 beforeEach(commonBeforeEach);
@@ -95,6 +96,81 @@ describe("GET /companies", function () {
           ],
     });
   });
+
+  test("3 valid filters", async () => {
+      const resp = await request(app).get("/companies/?name=C&minEmployees=2&maxEmployees=2")
+      expect(resp.body).toEqual({
+        companies:
+            [
+              {
+                handle: "c2",
+                name: "C2",
+                description: "Desc2",
+                numEmployees: 2,
+                logoUrl: "http://c2.img",
+              }
+            ]
+      })
+  })
+
+  test("min filter with non-int value returns error", async () => {
+    const resp = await request(app).get("/companies/?name=C&minEmployees=q&maxEmployees=2")
+    expect(resp.status).toEqual(400)
+    expect(resp.body.error.message).toEqual('minimum number of employees must be a number')
+  })
+
+  test("max filter with non-int value returns error", async () => {
+    const resp = await request(app).get("/companies/?name=C&minEmployees=2&maxEmployees=w")
+    expect(resp.status).toEqual(400)
+    expect(resp.body.error.message).toEqual('maximum number of employees must be a number')
+  })
+
+  test("non-valid filter field-names are ignored", async () => {
+    const resp = await request(app).get("/companies/?name=C&profit=2000&maxEmployees=2")
+    expect(resp.body).toEqual({
+      companies:
+          [
+            {
+              handle: "c1",
+              name: "C1",
+              description: "Desc1",
+              numEmployees: 1,
+              logoUrl: "http://c1.img",
+            },
+            {
+              handle: "c2",
+              name: "C2",
+              description: "Desc2",
+              numEmployees: 2,
+              logoUrl: "http://c2.img",
+            }
+          ],
+    })
+  })
+
+  test('filter by name is case-insensitive', async () => {
+    const resp1 = await request(app).get("/companies/?name=c2")
+    const resp2 = await request(app).get("/companies/?name=C2")
+    expect(resp1.body).toEqual(resp2.body)
+    expect(resp1.body).toEqual({
+      companies:
+          [
+            {
+              handle: "c2",
+              name: "C2",
+              description: "Desc2",
+              numEmployees: 2,
+              logoUrl: "http://c2.img",
+            }
+          ]
+    })
+  })
+
+  test('min > max for number of employees fails', async () => {
+    const resp = await request(app).get("/companies/?name=C&minEmployees=3&maxEmployees=2")
+    expect(resp.status).toEqual(400)
+    expect(resp.body.error.message).toEqual("maximum number of employees should be greater than the minimum")
+  })
 
   test("fails: test next() handler", async function () {
     // there's no normal failure event which will cause this route to fail ---

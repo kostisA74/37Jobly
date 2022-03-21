@@ -42,7 +42,7 @@ describe("POST /companies", function () {
     });
   });
 
-  test("fail for users", async function () {
+  test("fails for users", async function () {
     const resp = await request(app)
         .post("/companies")
         .send(newCompany)

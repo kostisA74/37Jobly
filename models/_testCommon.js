@@ -15,6 +15,16 @@ async function commonBeforeAll() {
            ('c2', 'C2', 2, 'Desc2', 'http://c2.img'),
            ('c3', 'C3', 3, 'Desc3', 'http://c3.img')`);
 
+  await db.query(`ALTER SEQUENCE jobs_id_seq RESTART WITH 1`)
+
+  await db.query(`
+    INSERT INTO jobs(company_handle, title, salary, equity)
+    VALUES ('c1', 'Financial Analyst', 35000, 0.86),
+           ('c2', 'HR manager', '52000', 0.9),
+           ('c3', 'Salesman', 38000, null),
+           ('c1', 'developer', 45000, null)`)
+       
+
   await db.query(`
         INSERT INTO users(username,
                           password,
@@ -41,7 +51,6 @@ async function commonAfterEach() {
 async function commonAfterAll() {
   await db.end();
 }
-
 
 module.exports = {
   commonBeforeAll,

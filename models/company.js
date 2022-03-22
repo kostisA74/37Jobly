@@ -73,16 +73,6 @@ class Company {
        FROM companies
        ${filtering.prepStat}
        ORDER BY name`, filtering.vals)
-
-    console.log(`SELECT handle,
-    name,
-    description,
-    num_employees AS "numEmployees",
-    logo_url AS "logoUrl"
-FROM companies
-${filtering.prepStat}
-ORDER BY name`, filtering.vals)
-
     return companiesRes.rows;  
   }
 

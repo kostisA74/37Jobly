@@ -7,6 +7,7 @@ const {
   NotFoundError,
   BadRequestError,
   UnauthorizedError,
+  ExpressError,
 } = require("../expressError");
 
 const { BCRYPT_WORK_FACTOR } = require("../config.js");
@@ -111,8 +112,13 @@ class User {
            FROM users
            ORDER BY username`,
     );
-
-    return result.rows;
+    const users = result.rows
+    for (let u of users){
+      const jobsRes = await db.query(
+          `SELECT job_id FROM applications WHERE username = '${u.username}'`)
+      u['jobs'] = jobsRes.rows
+    }
+    return users;
   }
 
   /** Given a username, return data about user.
@@ -124,6 +130,7 @@ class User {
    **/
 
   static async get(username) {
+   
     const userRes = await db.query(
           `SELECT username,
                   first_name AS "firstName",
@@ -136,9 +143,13 @@ class User {
     );
 
     const user = userRes.rows[0];
-
     if (!user) throw new NotFoundError(`No user: ${username}`);
 
+    const jobsRes = await db.query(
+          `SELECT job_id FROM applications WHERE username = $1`, [username])
+    const jobs = jobsRes.rows.map(job=>job.job_id)
+    user['jobs'] = jobs
+    console.log(jobsRes.rows)
     return user;
   }
 
@@ -204,7 +215,33 @@ class User {
 
     if (!user) throw new NotFoundError(`No user: ${username}`);
   }
+  /** User: username applies for job: id  */
+  /** authorisation: login & same user */
+  
+  static async apply(username, jobId) {
+    // check if data is valid
+    const u = await db.query(` SELECT * FROM users WHERE username = $1`, [username])
+    if (u.rows.length === 0) {
+      throw new ExpressError("User not found", 400)
+    }
+    
+    const j = await db.query(` SELECT * FROM jobs WHERE jobs.id = $1`, [jobId])
+    if (j.rows.length === 0) {
+      throw new ExpressError("Job not found", 400)
+    }
+    
+    const result = await db.query(` INSERT INTO applications (username, job_id)
+                                        VALUES ($1, $2)
+                                        RETURNING username, job_id`, [username, jobId])
+    
+    
+    const application = result.rows[0];
+    return application
+  }
+
+
 }
+
 
 
 module.exports = User;

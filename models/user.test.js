@@ -117,6 +117,7 @@ describe("findAll", function () {
         lastName: "U1L",
         email: "u1@email.com",
         isAdmin: false,
+        jobs:[]
       },
       {
         username: "u2",
@@ -124,6 +125,7 @@ describe("findAll", function () {
         lastName: "U2L",
         email: "u2@email.com",
         isAdmin: false,
+        jobs:[]
       },
     ]);
   });
@@ -140,6 +142,7 @@ describe("get", function () {
       lastName: "U1L",
       email: "u1@email.com",
       isAdmin: false,
+      jobs: []
     });
   });
 
@@ -228,3 +231,15 @@ describe("remove", function () {
     }
   });
 });
+
+/** Job applications */
+describe("apply", () => {
+  test("works", async () => {
+    let application = await User.apply("u1", 2)
+    let result = await db.query(`SELECT * FROM applications 
+                                 WHERE username = 'u1' AND job_id = 2 `)
+    expect(result.rows.length).toEqual(1)
+    expect(result.rows[0]).toEqual({username: 'u1', job_id: 2})
+  })
+
+})

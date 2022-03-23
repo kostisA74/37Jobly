@@ -5,12 +5,13 @@
 const jsonschema = require("jsonschema");
 
 const express = require("express");
-const { ensureLoggedIn, ensureIsAdmin, ensureIsAdminOrSpecUser } = require("../middleware/auth");
+const { ensureLoggedIn, ensureIsAdmin, ensureIsAdminOrSpecUser, ensureIsSpecUser } = require("../middleware/auth");
 const { BadRequestError } = require("../expressError");
 const User = require("../models/user");
 const { createToken } = require("../helpers/tokens");
 const userNewSchema = require("../schemas/userNew.json");
 const userUpdateSchema = require("../schemas/userUpdate.json");
+const applicationNewSchema = require("../schemas/applicationNew.json");
 
 const router = express.Router();
 
@@ -118,5 +119,25 @@ router.delete("/:username", ensureLoggedIn, ensureIsAdminOrSpecUser, async funct
   }
 });
 
+// POST /users/:username/jobs/:id
+
+router.post("/:username/jobs/:id", ensureLoggedIn, ensureIsSpecUser, async (req, res, next) => {
+  
+  try {
+    const username = req.params.username
+    const id = parseInt(req.params.id)
+    
+    const validator = jsonschema.validate({username: username, id: id}, applicationNewSchema);
+    if (!validator.valid) {
+      const errs = validator.errors.map(e => e.stack);
+      throw new BadRequestError(errs);
+    }
+    const application = await User.apply(username, id)
+    
+    return res.status(201).json({ application })  
+  } catch (error) {
+    return next(error)
+  }
+})
 
 module.exports = router;

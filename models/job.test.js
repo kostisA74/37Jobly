@@ -2,6 +2,7 @@
 
 const {sqlForPartialUpdate} = require('../helpers/sql')
 const db = require("../db.js");
+
 const { BadRequestError, NotFoundError } = require("../expressError");
 const Job = require("./job.js");
 const {
@@ -55,24 +56,28 @@ describe("create",  () => {
       let jobs = await Job.findAll();
       expect(jobs).toEqual([
         {
+          id: 1,
           company_handle: "c1",
           title: "Financial Analyst",
           salary: 35000,
           equity: 0.86
         },
         {
+          id: 2,
           company_handle: "c2",
           title: "HR manager",
           salary: 52000,
           equity: 0.9
         },
         {
+          id: 3,
           company_handle: "c3",
           title: "Salesman",
           salary: 38000,
           equity: null
         },
         {
+          id: 4,
           company_handle: "c1",
           title: "developer",
           salary: 45000,

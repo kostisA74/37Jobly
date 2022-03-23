@@ -12,11 +12,11 @@ function filterValidate(filters){
     // Check if number for min or max is int or throw error
     if (minFilter && !isInt(filters.minEmployees)) {
         
-        throw new ExpressError("minEmployees must be a number", 400)
+        throw new ExpressError("minimum number of employees must be a number", 400)
     }
     if (maxFilter && !isInt(filters.maxEmployees)) {
     
-        throw new ExpressError("maxEmployees must be a number", 400)
+        throw new ExpressError("maximum number of employees must be a number", 400)
     }
 
     //Check if max & min filters are >= 0

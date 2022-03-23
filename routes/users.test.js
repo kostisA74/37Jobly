@@ -141,6 +141,7 @@ describe("GET /users", function () {
           lastName: "U1L",
           email: "user1@user.com",
           isAdmin: false,
+          jobs: []
         },
         {
           username: "u2",
@@ -148,6 +149,7 @@ describe("GET /users", function () {
           lastName: "U2L",
           email: "user2@user.com",
           isAdmin: true,
+          jobs: []
         },
         {
           username: "u3",
@@ -155,6 +157,7 @@ describe("GET /users", function () {
           lastName: "U3L",
           email: "user3@user.com",
           isAdmin: false,
+          jobs: []
         },
       ],
     });
@@ -199,6 +202,7 @@ describe("GET /users/:username", function () {
         lastName: "U1L",
         email: "user1@user.com",
         isAdmin: false,
+        jobs: []
       },
     });
   });
@@ -214,6 +218,7 @@ describe("GET /users/:username", function () {
         lastName: "U1L",
         email: "user1@user.com",
         isAdmin: false,
+        jobs: []
       },
     });
   });
@@ -392,3 +397,71 @@ describe("DELETE /users/:username", function () {
     expect(resp.statusCode).toEqual(401);
   });
 });
+
+describe("POST /users/:username/jobs/:id", function () {
+  test("works for users: create application", async function () {
+    
+    const resp = await request(app)
+        .post("/users/u1/jobs/2")
+        .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(201);
+    expect(resp.body).toEqual({
+      application: {
+        username: "u1",
+        job_id: 2
+      }
+    });
+  });
+
+  test("unauth for other user ", async function () {
+    
+    const resp = await request(app)
+        .post("/users/u1/jobs/2")
+        .set("authorization", `Bearer ${u2Token}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
+  test("unauth for anon", async function () {
+    const resp = await request(app)
+        .post("/users/u1/jobs/2")
+    expect(resp.statusCode).toEqual(401);
+  });
+
+
+  test("bad request if missing data", async function () {
+    const resp = await request(app)
+        .post("/users/u1/jobs/a")
+        .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(400);
+  });
+
+  test("bad request if invalid data", async function () {
+    const resp = await request(app)
+        .post("/users/u1/jobs/34")
+        .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(400);
+  });
+});
+
+/** TESTING jobs in user object */
+
+describe("jobs in user's object", () => {
+  test("user with 2 jobs", async () => {
+    const app1 = await request(app)
+        .post("/users/u1/jobs/1")
+        .set("authorization", `Bearer ${u1Token}`)
+    const app2 = await request(app)
+        .post("/users/u1/jobs/3")
+        .set("authorization", `Bearer ${u1Token}`)
+    const userRes = await request(app).get("/users/u1").set("authorization", `Bearer ${u1Token}`)
+    expect(userRes.body).toEqual({
+         user: {
+           email: "user1@user.com",
+           firstName: "U1F",
+           isAdmin: false,
+           jobs: [1,3],
+           lastName: "U1L",
+           username: "u1",
+         }})
+  })
+})

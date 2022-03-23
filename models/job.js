@@ -3,8 +3,18 @@
 const db = require("../db");
 const { BadRequestError, NotFoundError } = require("../expressError");
 const {sqlForPartialUpdate} = require('../helpers/sql')
+const jobsFilterHelper = require('../helpers/jobsFilterHelper')
 
 class Job {
+/** Create a job (from data), update db, return new job data.
+   *
+   * data should be { company_handle, title, salary, equity }
+   *
+   * Returns { id, company_handle, title, salary, equity }
+   *
+   * Throws BadRequestError if job with same title & company_handle already in database.
+   * */
+
     static async create({ company_handle, title, salary, equity }) {
         const duplicateCheck = await db.query(
               `SELECT company_handle, title
@@ -29,9 +39,15 @@ class Job {
         return job;
     }
 
+/** Find all jobs.
+   *
+   * Returns [{ id, title, company_handler, salary, equity }, ...]
+   * */
+
     static async findAll() {
         const jobsRes = await db.query(
-              `SELECT company_handle,
+              `SELECT id,
+                      company_handle,
                       title,
                       salary,
                       CAST(equity as FLOAT)
@@ -39,6 +55,28 @@ class Job {
                ORDER BY title`);
         return jobsRes.rows;
       }
+  /** Filter jobs based on title (case-insensitive), minimum salary and equity (if true gets only jobs with equity) */
+
+      static async filter(filters) {
+        const filtering = jobsFilterHelper(filters)
+        const jobsRes = await db.query(
+          `SELECT id,
+                  company_handle,
+                  title,
+                  salary,
+                  CAST(equity AS FLOAT)
+           FROM jobs
+           ${filtering.prepStat}
+           ORDER BY title`, filtering.vals)
+        return jobsRes.rows;  
+      }
+
+/** Given a job id, return data about the job.
+   *
+   * Returns { company_handle, title, salary, equity }
+   *
+   * Throws NotFoundError if not found.
+   **/
 
       static async getById(id) {
         const jobRes = await db.query(
@@ -57,6 +95,17 @@ class Job {
         return job;
       }
 
+/** Update job data with `data`.
+   *
+   * This is a "partial update" --- it's fine if data doesn't contain all the
+   * fields; this only changes provided ones.
+   *
+   * Data can include: {salary, equity, title}
+   *
+   * Returns {id, company_handle, title, salary, equity}
+   *
+   * Throws NotFoundError if not found.
+   */
       static async update(id, data) {
         const { setCols, values } = sqlForPartialUpdate(data,{
             title: "title",
@@ -82,6 +131,11 @@ class Job {
     
         return job;
       }
+
+/** Delete given job from database; returns undefined.
+   *
+   * Throws NotFoundError if job not found.
+   **/
 
       static async remove(id) {
         const result = await db.query(

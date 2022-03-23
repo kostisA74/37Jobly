@@ -68,6 +68,20 @@ describe("findAll", function () {
         description: "Desc1",
         numEmployees: 1,
         logoUrl: "http://c1.img",
+        jobs: [
+          {
+            equity: 0.86,
+            id: 1,
+            salary: 35000,
+            title: "Financial Analyst"
+          },
+          {
+            equity: null,
+            id: 4,
+            salary: 45000,
+            title: "developer"
+          }
+        ]
       },
       {
         handle: "c2",
@@ -75,6 +89,14 @@ describe("findAll", function () {
         description: "Desc2",
         numEmployees: 2,
         logoUrl: "http://c2.img",
+        jobs: [
+          {
+            equity: 0.9,
+            id: 2,
+            salary: 52000,
+            title: "HR manager"
+          }
+        ]
       },
       {
         handle: "c3",
@@ -82,6 +104,14 @@ describe("findAll", function () {
         description: "Desc3",
         numEmployees: 3,
         logoUrl: "http://c3.img",
+        jobs: [
+          {
+            equity: null,
+            id: 3,
+            salary: 38000,
+            title: "Salesman"
+          }
+        ]
       },
     ]);
   });
@@ -98,6 +128,20 @@ describe("get", function () {
       description: "Desc1",
       numEmployees: 1,
       logoUrl: "http://c1.img",
+      jobs: [
+        {
+          equity: 0.86,
+          id: 1,
+          salary: 35000,
+          title: "Financial Analyst"
+        },
+        {
+          equity: null,
+          id: 4,
+          salary: 45000,
+          title: "developer"
+        }
+      ]
     });
   });
 

@@ -1,5 +1,5 @@
 const request = require("supertest");
-process.env.NODE_ENV = "test"
+// process.env.NODE_ENV = "test"
 
 const app = require("./app");
 const db = require("./db");

@@ -59,9 +59,19 @@ class Company {
                   logo_url AS "logoUrl"
            FROM companies
            ORDER BY name`);
-    return companiesRes.rows;
+           
+           const companies = companiesRes.rows
+      
+    for (let comp of companies){
+      const jobs = await db.query(`SELECT id, title, salary, CAST(equity AS FLOAT) FROM jobs WHERE jobs.company_handle = $1`,[comp.handle])
+      comp['jobs'] = jobs.rows
+    }
+
+    return companies;
   }
 
+  /** Filter companies based on name (case-insensitive), min - max employees */
+  
   static async filter(filters) {
     const filtering = filterHelper(filters)
     const companiesRes = await db.query(
@@ -70,10 +80,17 @@ class Company {
               description,
               num_employees AS "numEmployees",
               logo_url AS "logoUrl"
-       FROM companies
+       FROM companies 
        ${filtering.prepStat}
        ORDER BY name`, filtering.vals)
-    return companiesRes.rows;  
+
+       const companies = companiesRes.rows
+      
+      for (let comp of companies){
+        const jobs = await db.query(`SELECT id, title, salary, CAST(equity AS FLOAT) FROM jobs WHERE jobs.company_handle = $1`,[comp.handle])
+        comp['jobs'] = jobs.rows
+      }
+    return companies;  
   }
 
   /** Given a company handle, return data about company.
@@ -86,19 +103,17 @@ class Company {
 
   static async get(handle) {
     const companyRes = await db.query(
-          `SELECT handle,
-                  name,
-                  description,
-                  num_employees AS "numEmployees",
-                  logo_url AS "logoUrl"
+          `SELECT handle, name, description, num_employees AS "numEmployees", logo_url AS "logoUrl"
            FROM companies
            WHERE handle = $1`,
         [handle]);
 
     const company = companyRes.rows[0];
-
     if (!company) throw new NotFoundError(`No company: ${handle}`);
 
+    const jobsRes = await db.query(`SELECT id, title, salary, CAST(equity AS FLOAT) 
+                                    FROM jobs WHERE company_handle = $1`,[handle])
+    company['jobs'] = jobsRes.rows
     return company;
   }
 

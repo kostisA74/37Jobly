@@ -25,14 +25,12 @@ const router = new express.Router();
  */
 
 router.post("/", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) {
-  console.log(req.body)
   try {
     const validator = jsonschema.validate(req.body, companyNewSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
-
     const company = await Company.create(req.body);
     return res.status(201).json({ company });
   } catch (err) {
